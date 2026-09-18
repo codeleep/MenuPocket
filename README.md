@@ -7,7 +7,7 @@
 
 把拥挤的 macOS 菜单栏整理成分组。点击组名打开小面板，常用图标可以同时保留在菜单栏，管理窗口专门用来设置。
 
-**目前为 Alpha 预览版。** 原图标隐藏依赖 macOS 和第三方应用的辅助功能支持，尚不能保证管理所有图标。项目没有 Apple Developer ID 签名或公证；建议开发者从源码构建。实际兼容情况见 [验证记录](VERIFICATION.md)。
+**目前为 Alpha 预览版。** 原图标隐藏依赖 macOS 和第三方应用的辅助功能支持，尚不能保证管理所有图标。项目没有 Apple Developer ID 签名或公证，首次打开可能需要在系统设置中确认。实际兼容情况见 [验证记录](VERIFICATION.md)。
 
 ## 1. 能做什么
 
@@ -31,6 +31,8 @@
 | ![图标设置](docs/images/02-icon-settings.png) | ![分组面板](docs/images/03-quick-panel.png) |
 
 ## 3. 获取应用
+
+**直接安装**：打开 [Releases](https://github.com/codeleep/MenuPocket/releases)，下载 `MenuPocket-版本-macOS-universal.dmg`，打开后将 `MenuPocket.app` 拖入 `Applications`。无需安装开发工具，M 系列和 Intel 使用同一个安装包。首次启动与授权见 [使用教程](docs/USER_GUIDE.md#1-安装与授权)。
 
 **GitHub 云端构建**：进入 [Actions → CI](https://github.com/codeleep/MenuPocket/actions/workflows/ci.yml)，点击 **Run workflow**。构建完成后，从运行页面的 **Artifacts** 下载 Universal 包，支持 Apple Silicon 和 Intel。其他用户可以 Fork 后自行构建，详见 [GitHub 构建与下载步骤](docs/BUILDING.md#6-直接使用-github-构建)。
 

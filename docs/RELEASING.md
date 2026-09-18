@@ -32,7 +32,7 @@ git push origin "v${version}"
 
 标签工作流重新检查、测试、构建 Universal 临时签名应用并打包，创建 GitHub Release **草稿**。带 `-` 的版本自动标记预发行。维护者检查草稿说明和附件后，再在 GitHub 发布；草稿不会自动面向普通用户发布。
 
-附件包含 ZIP、`SHA256SUMS` 和 `build-info.json`。校验：
+附件包含可拖放安装的 DMG、ZIP、`SHA256SUMS` 和 `build-info.json`。校验：
 
 ```sh
 shasum -a 256 -c SHA256SUMS
@@ -42,7 +42,7 @@ shasum -a 256 -c SHA256SUMS
 
 ## 4. 签名与公证边界
 
-当前自动构建使用 ad hoc 临时签名，**没有 Apple Developer ID 身份或公证**。ZIP 是开发预览产物，不能宣称下载安装后免授权、免系统提示。SHA-256 用于核对下载完整性，不等同于开发者身份认证。
+当前自动构建使用 ad hoc 临时签名，**没有 Apple Developer ID 身份或公证**。安装包是开发预览产物，不能宣称下载安装后免授权、免系统提示。SHA-256 用于核对下载完整性，不等同于开发者身份认证。
 
 具备 Apple Developer 证书后，可使用 `--sign developer-id` 在受控环境构建，通过 Apple `notarytool` 提交公证、`stapler` 装订票据，并重新打包和生成校验值。仓库尚未配置这条公证流水线；完成前不要把临时签名草稿描述为正式发行版。
 

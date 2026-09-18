@@ -85,6 +85,6 @@ VERSION              唯一发行版本来源
 
 无需本机编译：打开仓库 **Actions → CI → Run workflow**，选择 `main` 并运行。需要仓库写权限；其他用户可 Fork 后在自己的仓库开启 Actions 并运行。
 
-等待三个任务全部变绿，在该次运行页面底部 **Artifacts** 下载 `MenuPocket-macOS-universal-提交号`。先解压下载的 artifact，再解压内部的 `MenuPocket-版本-macOS-universal.zip`，得到 `MenuPocket.app`；同目录提供校验文件和构建信息。下载 artifact 通常需要登录 GitHub，文件保留 14 天。
+等待三个任务全部变绿，在该次运行页面底部 **Artifacts** 下载 `MenuPocket-macOS-universal-提交号`。先解压下载的 artifact，打开其中的 `MenuPocket-版本-macOS-universal.dmg`，将应用拖入 Applications；也可使用附带的 ZIP。同目录提供校验文件和构建信息。下载 artifact 通常需要登录 GitHub，文件保留 14 天。
 
-这是临时签名开发预览，未经过 Apple 公证；系统可能拦截下载的应用。遇到系统阻止时，建议使用上文源码本地构建流程，不需要关闭系统安全机制。首次运行仍需自行授予辅助功能权限。
+这是临时签名开发预览，未经过 Apple 公证；系统可能拦截下载的应用。首次打开方法见 [使用教程](USER_GUIDE.md#1-安装与授权)。首次运行仍需自行授予辅助功能权限。

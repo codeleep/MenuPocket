@@ -2,7 +2,9 @@
 
 ## 1. 安装与授权
 
-按照 [构建教程](BUILDING.md) 生成 `dist/MenuPocket.app`，双击启动。可将它复制到「应用程序」后再授权，后续更新应保持安装路径和签名身份一致。
+从 [GitHub Releases](https://github.com/codeleep/MenuPocket/releases) 下载 Universal DMG，打开后将 `MenuPocket.app` 拖到 `Applications`，再弹出磁盘映像，从「应用程序」启动。安装包支持 Apple Silicon 和 Intel，无需编译。已有旧版时先退出再替换，配置保留在本机。也可以按 [构建教程](BUILDING.md) 自行编译。
+
+当前版本未做 Apple 公证。若提示开发者无法验证，确认下载来源后，先尝试打开一次，再到「系统设置 → 隐私与安全性」选择该应用的「仍要打开」，参见 [Apple 官方说明](https://support.apple.com/zh-cn/102445)。如系统提示恶意软件或文件损坏，请停止并检查来源和下载完整性。
 
 在管理窗口「权限与说明」中打开系统设置，为 MenuPocket 开启辅助功能。这项权限用于发现、点击和移动其他应用的菜单栏图标。没有授权时不会正常读取和操作图标。
 

@@ -41,6 +41,7 @@ jobs:
         with:
           name: MenuPocket-macOS-universal-${{ github.sha }}
           path: |
+            dist/ci/*.dmg
             dist/ci/*.zip
             dist/ci/SHA256SUMS
             dist/ci/build-info.json

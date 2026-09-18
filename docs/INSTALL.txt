@@ -1,0 +1,24 @@
+MenuPocket 安装说明
+
+系统：macOS 13 或更新；同一个包支持 Apple Silicon（M 系列）和 Intel。
+
+1. 如果正在运行旧版本，先从 MenuPocket 菜单退出。
+2. 将 MenuPocket.app 拖到本窗口的 Applications 文件夹。
+3. 弹出 MenuPocket 磁盘映像，从“应用程序”打开 MenuPocket。
+4. 在“系统设置 → 隐私与安全性 → 辅助功能”为新安装的应用开启权限。
+   从旧开发版升级可能需要移除旧条目，再添加“应用程序”中的 MenuPocket。
+   屏幕录制只用于可选原图标预览，可以先不开启。
+
+首次打开提示开发者无法验证？
+当前是未经过 Apple 公证的 Alpha 预览版。确认从本项目 Releases 下载后，
+先尝试打开一次，再到“系统设置 → 隐私与安全性”，找到该应用并选择“仍要打开”。
+只对 MenuPocket 确认例外，无需关闭系统安全功能。
+如果提示包含恶意软件或文件损坏，请停止打开并核对下载来源与 SHA256SUMS。
+Apple 说明：https://support.apple.com/zh-cn/102445
+
+使用：点击菜单栏分组打开小面板；点击齿轮进入管理设置。
+快捷键：Control + Option + Command + B 打开全部图标。
+当前版本仍有部分系统/第三方图标隐藏兼容性限制。
+
+项目与教程：https://github.com/codeleep/MenuPocket
+问题反馈：https://github.com/codeleep/MenuPocket/issues
