@@ -30,7 +30,11 @@
 | --- | --- |
 | ![图标设置](docs/images/02-icon-settings.png) | ![分组面板](docs/images/03-quick-panel.png) |
 
-## 3. 从源码开始
+## 3. 获取应用
+
+**GitHub 云端构建**：进入 [Actions → CI](https://github.com/codeleep/MenuPocket/actions/workflows/ci.yml)，点击 **Run workflow**。构建完成后，从运行页面的 **Artifacts** 下载 Universal 包，支持 Apple Silicon 和 Intel。其他用户可以 Fork 后自行构建，详见 [GitHub 构建与下载步骤](docs/BUILDING.md#6-直接使用-github-构建)。
+
+**本机源码构建**：
 
 需要 macOS、Swift 6 工具链、Python 3；默认稳定本地签名还需要 OpenSSL 3。
 

@@ -194,7 +194,7 @@ struct IconTile: View {
     let edit: () -> Void
 
     var body: some View {
-        Button(action: edit) { 
+        Button(action: edit) {
             VStack(spacing: 8) {
                 ZStack(alignment: .topTrailing) {
                     Image(nsImage: state.thumbnails[item.id] ?? item.image).resizable().scaledToFit().frame(width: 30, height: 30)
