@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+dist/
+.local-signing/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.keychain-db
+*.p12
+*.p8
+*.key
+*.pem
+*.mobileprovision

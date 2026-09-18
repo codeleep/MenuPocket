@@ -1,0 +1,58 @@
+name: Release draft
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  build:
+    name: Build release
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Verify tag matches VERSION
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: test "$RELEASE_TAG" = "v$(cat VERSION)"
+      - run: make check test
+      - run: bash scripts/build.sh --arch universal --sign adhoc --output dist/release
+      - run: bash scripts/package.sh dist/release
+      - run: cd dist/release && shasum -a 256 -c SHA256SUMS
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-bundle
+          path: |
+            dist/release/*.zip
+            dist/release/SHA256SUMS
+            dist/release/build-info.json
+          if-no-files-found: error
+          retention-days: 14
+  publish:
+    name: Create draft
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-bundle
+          path: release
+      - name: Create reviewable release draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          cat > notes.md <<'EOF'
+          MenuPocket 开源预览版，包含 Apple Silicon 与 Intel 通用应用。
+
+          本构建使用 ad hoc 临时签名，尚无 Apple Developer ID 签名和公证。建议开发者从源码构建；真实菜单栏兼容性请参阅仓库 VERIFICATION.md。构建通过不代表所有图标都可隐藏。
+
+          附件包含安装包、SHA256SUMS 和 build-info.json。下载后可用 shasum -a 256 -c SHA256SUMS 校验。
+          EOF
+          flags=(--draft --verify-tag)
+          if [[ "$RELEASE_TAG" == *-* ]]; then flags+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" release/* --title "MenuPocket $RELEASE_TAG" --notes-file notes.md "${flags[@]}"

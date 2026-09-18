@@ -1,0 +1,23 @@
+name: 问题反馈
+description: 图标识别、隐藏、点击或构建异常
+labels: [bug]
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: macOS、CPU 架构、MenuPocket 版本、目标应用版本、显示器情况
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤、预期与实际结果
+      description: 请写明图标设置中的实际结果；截图和诊断请先脱敏。
+    validations:
+      required: true
+  - type: textarea
+    id: checks
+    attributes:
+      label: 已尝试的检查
+      description: 辅助功能状态、刷新、重启等

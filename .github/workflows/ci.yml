@@ -1,0 +1,48 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native:
+    name: Native (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, macos-15-intel]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+      - run: make check test
+      - name: Build native app
+        run: bash scripts/build.sh --sign adhoc --output dist/native
+  universal:
+    name: Universal download
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: make ci
+      - name: Verify archive
+        run: cd dist/ci && shasum -a 256 -c SHA256SUMS
+      - name: Upload installable preview
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: MenuPocket-macOS-universal-${{ github.sha }}
+          path: |
+            dist/ci/*.zip
+            dist/ci/SHA256SUMS
+            dist/ci/build-info.json
+          if-no-files-found: error
+          retention-days: 14
