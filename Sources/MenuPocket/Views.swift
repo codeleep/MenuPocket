@@ -171,7 +171,7 @@ struct PocketView: View {
 
     private var footer: some View {
         VStack(alignment: .leading, spacing: 9) {
-            Text("点击图标设置显示偏好和分组；使用图标请点击菜单栏的分组入口。")
+            Text("点击图标调整分组和顺序；使用图标请点击菜单栏的分组入口。")
                 .font(.caption).foregroundStyle(.secondary)
             Text(state.message)
                 .font(.caption2).foregroundStyle(.secondary).lineLimit(3)
@@ -202,17 +202,12 @@ struct IconTile: View {
                 }
                 Text(state.displayName(item)).font(.callout).lineLimit(2).multilineTextAlignment(.center).frame(height: 34)
                 Text(item.isSystem ? "系统图标" : item.appName).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
-                if state.layout.placements[item.id]?.groupID != nil {
-                    Label(state.visibility[item.id]?.badgeText ?? "等待应用显示偏好",
-                          systemImage: state.layout.keepInMenuBar(item.id) ? "pin.fill" : "folder")
-                        .font(.caption2).foregroundStyle(.secondary)
-                }
             }.padding(12).frame(maxWidth: .infinity)
                 .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(.primary.opacity(0.07)))
                 .contentShape(RoundedRectangle(cornerRadius: 12))
         }.buttonStyle(.plain).disabled(state.working)
-            .help("设置 \(state.displayName(item)) 的显示偏好和分组")
+            .help("设置 \(state.displayName(item)) 的分组和顺序")
             .onDrag { NSItemProvider(object: item.id as NSString) }
             .contextMenu {
                 Button("图标设置…", action: edit)
@@ -270,28 +265,6 @@ struct IconSettingsView: View {
                         .disabled(position == nil || position == ordered.count - 1)
                 }
             }.disabled(state.working || !isAvailable)
-            Divider()
-            VStack(alignment: .leading, spacing: 10) {
-                Text("显示偏好").font(.headline)
-                Picker("显示位置", selection: Binding(
-                    get: { state.layout.keepInMenuBar(item.id) },
-                    set: { state.setMenuBarVisible(item.id, visible: $0) }
-                )) {
-                    Text("菜单栏和分组都显示").tag(true)
-                    Text("仅在分组显示").tag(false)
-                }.pickerStyle(.radioGroup).labelsHidden()
-                    .disabled(groupID == nil || state.working || !isAvailable)
-                if groupID == nil {
-                    Text("先选择一个分组，再设置显示偏好。").font(.caption).foregroundStyle(.secondary)
-                } else {
-                    Label(state.visibility[item.id]?.text ?? "等待应用显示偏好", systemImage: "info.circle")
-                        .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    if case .failed = state.visibility[item.id] {
-                        Button("重试应用显示偏好") { state.retryVisibility?(item.id) }
-                            .disabled(state.working || !isAvailable)
-                    }
-                }
-            }
             if !isAvailable {
                 Text("原图标已退出或发生变化，分组设置已保留；请关闭后刷新列表。")
                     .font(.caption).foregroundStyle(.secondary)
@@ -331,7 +304,7 @@ struct PermissionsView: View {
             }
             Divider()
             Text("使用方式").font(.headline)
-            Text("• 点击菜单栏分组使用图标；点击管理界面图标修改设置。\n• 隐藏组只隐藏组入口，仍能从“全部图标”访问。\n• ⌃⌥⌘B 打开全部图标。\n• 选择“仅在分组显示”会自动隐藏支持移动的原图标。无法操作的项目会显示“未生效”，可点击查看原因。")
+            Text("• 点击菜单栏分组使用图标；点击管理界面图标调整分组和顺序。\n• 隐藏组只隐藏组入口，仍能从“全部图标”访问。\n• ⌃⌥⌘B 打开全部图标。\n• 原图标保留在菜单栏，归组和排序只改变 MenuPocket 内的排列。")
                 .font(.callout)
             HStack {
                 Button("退出 MenuPocket") { NSApp.terminate(nil) }

@@ -1,30 +1,6 @@
 import AppKit
 import ApplicationServices
 
-enum VisibilityDelta {
-    static func changedIDs(previous: [String: Bool], current: [String: Bool]) -> Set<String> {
-        Set(current.keys.filter { previous[$0] != current[$0] })
-    }
-}
-
-enum VisibilityStatus {
-    case applying, hidden, visible, failed(String)
-
-    var text: String {
-        switch self {
-        case .applying: return "正在应用…"
-        case .hidden: return "仅在分组中显示"
-        case .visible: return "同时显示在菜单栏"
-        case .failed(let reason): return "未生效：\(reason)"
-        }
-    }
-
-    var badgeText: String {
-        if case .failed = self { return "未生效 · 点击查看原因" }
-        return text
-    }
-}
-
 struct IconGroup: Codable, Identifiable, Equatable {
     var id = UUID().uuidString
     var name: String
@@ -34,13 +10,12 @@ struct IconGroup: Codable, Identifiable, Equatable {
 
 struct Placement: Codable, Equatable {
     var groupID: String?
-    var pinned = false
     var order = 0
     var label: String?
 }
 
 struct Layout: Codable, Equatable {
-    var version = 1
+    var version = 2
     var groups = [
         IconGroup(name: "开发", symbol: "hammer"),
         IconGroup(name: "网络", symbol: "network"),
@@ -63,11 +38,6 @@ struct Layout: Codable, Equatable {
         }
     }
 
-    func keepInMenuBar(_ id: String) -> Bool {
-        guard let groupID = placements[id]?.groupID else { return true }
-        return !groups.contains { $0.id == groupID } || placements[id]?.pinned == true
-    }
-
     mutating func move(_ id: String, into groupID: String?) {
         guard groupID == nil || groups.contains(where: { $0.id == groupID }) else { return }
         var placement = placements[id] ?? Placement()
@@ -87,9 +57,18 @@ final class LayoutRepository {
 
     func load() throws -> Layout {
         guard FileManager.default.fileExists(atPath: url.path) else { return Layout() }
-        let result = try JSONDecoder().decode(Layout.self, from: Data(contentsOf: url))
-        guard result.version == 1 else { throw CocoaError(.fileReadUnknown) }
+        var result = try JSONDecoder().decode(Layout.self, from: Data(contentsOf: url))
+        guard result.version == 1 || result.version == 2 else { throw CocoaError(.fileReadUnknown) }
         guard Set(result.groups.map(\.id)).count == result.groups.count else { throw CocoaError(.fileReadCorruptFile) }
+        if result.version == 1 {
+            // Keep the original hide/pin preferences available for rollback to older builds.
+            var backup = url.appendingPathExtension("v1-backup")
+            if FileManager.default.fileExists(atPath: backup.path) {
+                backup = backup.appendingPathExtension(UUID().uuidString)
+            }
+            try FileManager.default.copyItem(at: url, to: backup)
+            result.version = 2
+        }
         return result
     }
 

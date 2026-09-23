@@ -9,70 +9,88 @@ struct CoreTests {
             passed += 1
         }
         var layout = Layout()
-        var migration = Layout()
-        migration.move("host-proxy", into: migration.groups[0].id)
-        migration.placements["host-proxy"]?.pinned = true
-        let originalPlacement = migration.placements["host-proxy"]
-        migration.migrateAliases(["host-proxy"], to: "source-app")
-        check(migration.placements["source-app"] == originalPlacement, "识别宿主代理后应完整保留原分组顺序和偏好")
-        check(migration.placements["host-proxy"] == nil, "已确认代理身份应清理旧键避免重复迁移")
-        migration.move("new-proxy", into: migration.groups[1].id)
-        migration.migrateAliases(["new-proxy", "source-app"], to: "source-app")
-        check(migration.placements["source-app"] == originalPlacement, "已有真实图标设置不能被代理设置覆盖或删除")
-        check(migration.placements["new-proxy"] == nil, "已有真实设置也应移除已确认的旧代理键")
-        let initialVisibility = ["docker": false, "wifi": false, "battery": true]
-        check(VisibilityDelta.changedIDs(previous: [:], current: initialVisibility) == Set(initialVisibility.keys), "首次发现应检查已有图标")
-        var changedVisibility = initialVisibility
-        changedVisibility["wifi"] = true
-        check(VisibilityDelta.changedIDs(previous: initialVisibility, current: changedVisibility) == ["wifi"], "单项偏好变化只能应用该图标")
-        check(VisibilityDelta.changedIDs(previous: changedVisibility, current: changedVisibility).isEmpty, "重复扫描不能重新应用图标")
-        changedVisibility["new-app"] = true
-        check(VisibilityDelta.changedIDs(previous: initialVisibility.merging(["wifi": true]) { _, new in new }, current: changedVisibility) == ["new-app"], "新应用出现只能应用新图标")
-        check(VisibilityDelta.changedIDs(previous: changedVisibility, current: ["battery": true]).isEmpty, "应用退出不能触发其他图标重新应用")
         let network = layout.groups[1].id
-        layout.move("com.apple.controlcenter|WiFi|0", into: network)
-        check(!layout.keepInMenuBar("com.apple.controlcenter|WiFi|0"), "首次归组默认隐藏原图标")
-        layout.placements["com.apple.controlcenter|WiFi|0"]?.pinned = true
-        check(layout.keepInMenuBar("com.apple.controlcenter|WiFi|0"), "归组图标可以同时显示在菜单栏")
-        layout.groups[1].hidden = true
-        check(layout.keepInMenuBar("com.apple.controlcenter|WiFi|0"), "隐藏组入口不能覆盖单图标显示偏好")
-        layout.groups[1].hidden = false
-        check(layout.keepInMenuBar("com.apple.controlcenter|WiFi|0"), "恢复组入口保留单图标显示偏好")
-        layout.placements["com.apple.controlcenter|WiFi|0"]?.pinned = false
-        check(!layout.keepInMenuBar("com.apple.controlcenter|WiFi|0"), "关闭同时显示后应收起原图标")
-        check(layout.placements["com.apple.controlcenter|WiFi|0"]?.groupID == network, "更改显示偏好不能移出分组")
-        layout.placements["com.apple.controlcenter|WiFi|0"]?.pinned = true
-        check(layout.keepInMenuBar("new-app"), "未分组的新图标必须保留在状态栏")
+        layout.move("wifi", into: network)
+        layout.placements["wifi"]?.label = "无线网络"
         layout.move("vpn", into: network)
-        let beforeMove = ["vpn": layout.keepInMenuBar("vpn")]
-        var regrouped = layout
-        regrouped.move("vpn", into: layout.groups[0].id)
-        check(VisibilityDelta.changedIDs(previous: beforeMove, current: ["vpn": regrouped.keepInMenuBar("vpn")]).isEmpty, "两组之间移动不应重新应用菜单栏偏好")
-        check(layout.placements["vpn"]!.order > layout.placements["com.apple.controlcenter|WiFi|0"]!.order, "拖入组应追加到末尾")
+        check(layout.placements["wifi"]?.groupID == network, "归组应记录目标组")
+        check(layout.placements["vpn"]!.order > layout.placements["wifi"]!.order, "拖入组应追加到末尾")
         let before = layout
         layout.move("vpn", into: "deleted-group")
         check(layout == before, "失效拖放目标不能破坏归组")
+        layout.groups[1].hidden = true
+        check(layout.placements == before.placements, "隐藏组入口不能修改组内图标")
+        layout.move("vpn", into: layout.groups[0].id)
+        check(layout.placements["vpn"]?.groupID == layout.groups[0].id, "应能在分组间移动")
+        layout.move("vpn", into: nil)
+        check(layout.placements["vpn"]?.groupID == nil, "应能移回未分组")
+        layout.removeGroup(network)
+        check(layout.placements["wifi"]?.groupID == nil, "删除组应保留图标并移入未分组")
+        check(layout.placements["wifi"]?.label == "无线网络", "删除组应保留图标名称")
+
+        var migration = Layout()
+        migration.move("host-proxy", into: migration.groups[0].id)
+        migration.placements["host-proxy"]?.label = "下载工具"
+        let originalPlacement = migration.placements["host-proxy"]
+        migration.migrateAliases(["host-proxy"], to: "source-app")
+        check(migration.placements["source-app"] == originalPlacement, "识别宿主代理后应保留分组顺序和名称")
+        check(migration.placements["host-proxy"] == nil, "应移除已确认的代理键")
+        migration.move("new-proxy", into: migration.groups[1].id)
+        migration.migrateAliases(["new-proxy", "source-app"], to: "source-app")
+        check(migration.placements["source-app"] == originalPlacement, "已有真实图标设置不能被代理覆盖")
+        check(migration.placements["new-proxy"] == nil, "已有真实设置也应清理旧代理")
 
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("MenuPocket-tests-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: directory) }
         let repository = LayoutRepository(url: directory.appendingPathComponent("layout.json"))
         let initial = try repository.load()
-        check(initial.groups.count == 3, "首次运行有默认分组")
+        check(initial.groups.count == 3 && initial.version == 2, "新配置应使用分组版结构")
         try repository.save(layout)
         let restored = try repository.load()
-        check(restored == layout, "重启应精确保留中文组名、隐藏状态、顺序和常驻偏好")
-        layout.removeGroup(network)
-        check(layout.placements["vpn"]?.groupID == nil, "删除组应保留图标并移入未分组")
-        check(layout.keepInMenuBar("vpn"), "删除分组后应恢复原图标")
-        let development = layout.groups[0].id
-        layout.move("terminal", into: development)
-        check(!layout.keepInMenuBar("terminal"), "加入分组应隐藏")
-        layout.move("terminal", into: nil)
-        check(layout.keepInMenuBar("terminal"), "移回未分组应恢复")
-        check(layout.placements["com.apple.controlcenter|WiFi|0"]?.pinned == true, "删除组不能丢失图标偏好")
-        try repository.save(layout)
-        let bytes = try Data(contentsOf: repository.url)
-        check(!bytes.isEmpty, "原子保存应有可读文件")
+        check(restored == layout, "重启应保留中文名称、组入口状态和顺序")
+
+        // Real v1 payload: hidden and pinned describe different things. Only group visibility survives.
+        let legacy = Data("""
+        {"version":1,"groups":[
+          {"id":"work","name":"工作","symbol":"hammer","hidden":true},
+          {"id":"system","name":"系统","symbol":"gear","hidden":false}
+        ],"placements":{
+          "hidden-app":{"groupID":"work","order":5,"label":"下载工具","pinned":false},
+          "pinned-app":{"groupID":"system","order":2,"pinned":true},
+          "ungrouped-app":{"order":3,"pinned":false}
+        }}
+        """.utf8)
+        try legacy.write(to: repository.url)
+        let upgraded = try repository.load()
+        check(upgraded.version == 2, "v1 应迁移到分组版 v2")
+        check(upgraded.groups.map(\.id) == ["work", "system"], "迁移应保留分组顺序")
+        check(upgraded.groups[0].hidden && !upgraded.groups[1].hidden, "迁移应保留组入口状态")
+        check(upgraded.placements["hidden-app"]?.groupID == "work", "原隐藏图标应保留归组")
+        check(upgraded.placements["pinned-app"]?.groupID == "system", "原常驻图标应保留归组")
+        check(upgraded.placements["hidden-app"]?.order == 5, "迁移应保留组内顺序")
+        check(upgraded.placements["hidden-app"]?.label == "下载工具", "迁移应保留自定义名称")
+        check(upgraded.placements["ungrouped-app"]?.groupID == nil, "未分组图标不应被重新归组")
+        let backup = repository.url.appendingPathExtension("v1-backup")
+        let backedUp = try Data(contentsOf: backup)
+        check(backedUp == legacy, "迁移前应完整备份旧配置")
+        let unchanged = try Data(contentsOf: repository.url)
+        check(unchanged == legacy, "读取迁移结果不能先行覆盖旧文件")
+        try repository.save(upgraded)
+        let json = try JSONSerialization.jsonObject(with: Data(contentsOf: repository.url)) as! [String: Any]
+        let placements = json["placements"] as! [String: [String: Any]]
+        check(placements.values.allSatisfy { $0["pinned"] == nil }, "新配置不应再保存单图标显示偏好")
+        let reloaded = try repository.load()
+        check(reloaded == upgraded, "迁移后的配置应完整往返")
+        let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        check(files.filter { $0.hasPrefix("layout.json.v1-backup") }.count == 1, "v2 重读不应再次迁移")
+        // A later v1 import must not overwrite the first rollback backup.
+        var anotherLegacy = try JSONSerialization.jsonObject(with: legacy) as! [String: Any]
+        anotherLegacy["placements"] = [:]
+        try JSONSerialization.data(withJSONObject: anotherLegacy).write(to: repository.url)
+        _ = try repository.load()
+        let firstBackup = try Data(contentsOf: backup)
+        check(firstBackup == legacy, "后续导入不能覆盖首次备份")
+
         let invalid = Data("{invalid configuration".utf8)
         try invalid.write(to: repository.url)
         do { _ = try repository.load(); fatalError("损坏文件不能被默认为新布局") }
@@ -84,6 +102,11 @@ struct CoreTests {
         try repository.save(future)
         do { _ = try repository.load(); fatalError("未知版本必须拒绝") }
         catch { passed += 1 }
-        print("PASS: \(passed) layout and persistence assertions")
+        var duplicate = layout
+        duplicate.groups.append(duplicate.groups[0])
+        try repository.save(duplicate)
+        do { _ = try repository.load(); fatalError("重复分组标识必须拒绝") }
+        catch { passed += 1 }
+        print("PASS: \(passed) grouping, migration and persistence assertions")
     }
 }

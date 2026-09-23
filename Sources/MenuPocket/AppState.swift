@@ -15,16 +15,12 @@ final class AppState: ObservableObject {
     @Published var trusted = AXIsProcessTrusted()
     @Published var showingPermissions = false
     @Published var editingIcon: MenuIcon?
-    @Published var visibility: [String: VisibilityStatus] = [:]
     @Published var thumbnails: [String: NSImage] = [:]
     let repository: LayoutRepository
     let operations = ItemOperator()
     private var scanGeneration = 0
     private var saveEnabled = true
     var layoutChanged: (() -> Void)?
-    var visibilityChanged: ((Set<String>) -> Void)?
-    var scanCompleted: (() -> Void)?
-    var retryVisibility: ((String) -> Void)?
     var activateItem: ((MenuIcon, Bool) async -> Void)?
 
     init(repository: LayoutRepository = LayoutRepository()) {
@@ -68,9 +64,8 @@ final class AppState: ObservableObject {
                     return resolved
                 }
                 self.scanning = false
-                self.message = self.trusted ? "发现 \(icons.count) 个菜单栏项目 · \(icons.filter(\.isSystem).count) 个来自系统应用" : "等待辅助功能授权；窗口占位不会被当作真实图标展示。"
+                self.message = self.trusted ? "发现 \(icons.count) 个菜单栏项目 · \(icons.filter(\.isSystem).count) 个来自系统应用" : "等待辅助功能授权后读取菜单栏图标。"
                 self.persist()
-                self.scanCompleted?()
             }
         }
     }
@@ -81,16 +76,9 @@ final class AppState: ObservableObject {
         catch { self.error = "布局保存失败：\(error.localizedDescription)" }
     }
 
-    private func changed(from previous: Layout? = nil) {
+    private func changed() {
         persist()
         layoutChanged?()
-        if let previous {
-            let ids = Set(items.map(\.id))
-            let before = Dictionary(uniqueKeysWithValues: ids.map { ($0, previous.keepInMenuBar($0)) })
-            let after = Dictionary(uniqueKeysWithValues: ids.map { ($0, layout.keepInMenuBar($0)) })
-            let changedIDs = VisibilityDelta.changedIDs(previous: before, current: after)
-            if !changedIDs.isEmpty { visibilityChanged?(changedIDs) }
-        }
     }
 
     func createGroup(_ raw: String) {
@@ -112,10 +100,9 @@ final class AppState: ObservableObject {
     }
 
     func delete(_ group: IconGroup) {
-        let previous = layout
         layout.removeGroup(group.id)
         if selectedGroup == group.id { selectedGroup = nil }
-        changed(from: previous)
+        changed()
     }
 
     func hide(_ group: IconGroup) {
@@ -132,18 +119,8 @@ final class AppState: ObservableObject {
 
     func move(_ id: String, groupID: String?) {
         guard !working, items.contains(where: { $0.id == id }) else { return }
-        let previous = layout
         layout.move(id, into: groupID)
-        changed(from: previous)
-    }
-
-    func setMenuBarVisible(_ id: String, visible: Bool) {
-        guard !working, let groupID = layout.placements[id]?.groupID,
-              layout.groups.contains(where: { $0.id == groupID }) else { return }
-        guard layout.keepInMenuBar(id) != visible else { return }
-        let previous = layout
-        layout.placements[id]?.pinned = visible
-        changed(from: previous)
+        changed()
     }
 
     func reorder(_ item: MenuIcon, by offset: Int) {

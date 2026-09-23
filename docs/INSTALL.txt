@@ -18,7 +18,8 @@ Apple 说明：https://support.apple.com/zh-cn/102445
 
 使用：点击菜单栏分组打开小面板；点击齿轮进入管理设置。
 快捷键：Control + Option + Command + B 打开全部图标。
-当前版本仍有部分系统/第三方图标隐藏兼容性限制。
+本版只管理分组，不再隐藏或移动原应用图标。部分原菜单点击仍有兼容性限制。
+从 0.2.x 升级会保留分组与排序，并在配置目录保存旧配置备份。
 
 项目与教程：https://github.com/codeleep/MenuPocket
 问题反馈：https://github.com/codeleep/MenuPocket/issues

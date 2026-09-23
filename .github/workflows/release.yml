@@ -50,7 +50,7 @@ jobs:
           cat > notes.md <<'EOF'
           MenuPocket 开源预览版，包含 Apple Silicon 与 Intel 通用应用。
 
-          本构建使用 ad hoc 临时签名，尚无 Apple Developer ID 签名和公证。下载 DMG 后将 MenuPocket.app 拖入 Applications，再从“应用程序”打开并授权辅助功能。首次打开方式见仓库 docs/USER_GUIDE.md；真实菜单栏兼容性请参阅 VERIFICATION.md。构建通过不代表所有图标都可隐藏。
+          本构建使用 ad hoc 临时签名，尚无 Apple Developer ID 签名和公证。下载 DMG 后将 MenuPocket.app 拖入 Applications，再从“应用程序”打开并授权辅助功能。首次打开方式见仓库 docs/USER_GUIDE.md；真实菜单栏兼容性请参阅 VERIFICATION.md。本版只保留分组管理，原图标留在菜单栏；构建通过不代表所有原菜单点击都已完成兼容性验证。
 
           附件包含 DMG、ZIP、SHA256SUMS 和 build-info.json。下载后可用 shasum -a 256 -c SHA256SUMS 校验。
           EOF

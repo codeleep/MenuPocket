@@ -14,7 +14,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var hotKeys: [EventHotKeyRef] = []
     private var eventHandler: EventHandlerRef?
     private var refreshTimer: Timer?
-    private var hiddenItems: HiddenItemsController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let matches = NSRunningApplication.runningApplications(withBundleIdentifier: "local.codeleep.MenuPocket")
@@ -34,16 +33,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         makeWindow()
         quickPopover.behavior = .transient
         quickPopover.animates = false
-        hiddenItems = HiddenItemsController(state: state) { [weak self] in
-            guard let self else { return [] }
-            return [self.control] + Array(self.groups.values)
-        }
         state.layoutChanged = { [weak self] in
             self?.rebuildGroups()
         }
-        state.visibilityChanged = { [weak self] ids in self?.hiddenItems?.schedule(ids: ids) }
-        state.scanCompleted = { [weak self] in self?.hiddenItems?.schedule() }
-        state.retryVisibility = { [weak self] id in self?.hiddenItems?.schedule(ids: [id]) }
         state.activateItem = { [weak self] item, right in await self?.activate(item, right: right) }
         registerShortcuts()
         NotificationCenter.default.addObserver(self, selector: #selector(screensChanged), name: NSApplication.didChangeScreenParametersNotification, object: nil)
@@ -86,7 +78,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return
         }
-        hiddenItems?.stop()
         quickPopover.close()
         displayedGroups = displayed
         // Recreate in the requested order. Restoring per-item system autosave positions
@@ -103,7 +94,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             item.button?.action = #selector(groupClicked(_:))
         }
         control?.button?.toolTip = "MenuPocket · 全部图标（⌃⌥⌘B）"
-        hiddenItems?.schedule(force: true)
     }
 
     @objc private func groupClicked(_ button: NSStatusBarButton) {
@@ -191,10 +181,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func screensChanged() {
         quickPopover.close()
-        hiddenItems?.stop()
         rebuildGroups()
         state.refresh()
-        hiddenItems?.schedule(force: true)
         state.message = "显示器布局已变化，已刷新分组入口。"
     }
 
@@ -227,7 +215,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         refreshTimer?.invalidate()
-        hiddenItems?.stop()
         for key in hotKeys { UnregisterEventHotKey(key) }
         if let eventHandler { RemoveEventHandler(eventHandler) }
         for item in groups.values { NSStatusBar.system.removeStatusItem(item) }
