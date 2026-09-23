@@ -1,5 +1,5 @@
 name: 问题反馈
-description: 图标识别、隐藏、点击或构建异常
+description: 图标识别、分组、点击或构建异常
 labels: [bug]
 body:
   - type: textarea

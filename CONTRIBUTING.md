@@ -12,7 +12,7 @@ bash scripts/build.sh --sign adhoc --output dist/contribution
 
 ## 2. 提交 Pull Request
 
-说明问题、最终行为、验证方式和未验证范围。UI 变化附演示数据截图；涉及菜单栏移动时写明 macOS、CPU、显示器和目标应用版本。不要把编译通过描述为真实图标兼容。
+说明问题、最终行为、验证方式和未验证范围。UI 变化附演示数据截图；涉及原菜单点击时写明 macOS、CPU、显示器和目标应用版本。不要把编译通过描述为真实图标兼容。
 
 不提交 `.local-signing/`、构建产物、用户配置或未脱敏诊断。更改行为时同步更新教程和变更日志。
 
